@@ -162,11 +162,13 @@ def _read_skills(root: Path) -> list[Skill]:
     if not root.is_dir():
         return []
     skills: list[Skill] = []
-    _collect_skills(root, skills, depth=0)
+    _collect_skills(root, skills, depth=0, skills_root=root)
     return skills
 
 
-def _collect_skills(root: Path, skills: list[Skill], *, depth: int) -> None:
+def _collect_skills(
+    root: Path, skills: list[Skill], *, depth: int, skills_root: Path
+) -> None:
     for child in sorted(root.iterdir()):
         if child.name.startswith("."):
             continue
@@ -174,20 +176,33 @@ def _collect_skills(root: Path, skills: list[Skill], *, depth: int) -> None:
             if child.name == "SKILL.md":
                 meta, body = parse_skill_md(read_text(child))
                 slug = kebab(meta.get("name") or child.parent.name, fallback="skill")
-                _append_skill(skills, slug, meta.get("name") or slug, meta, body)
+                _append_skill(skills, slug, meta.get("name") or slug, meta, body, "")
             continue
         parsed = read_skill_dir(child)
         if parsed:
             meta, body = parsed
             slug = kebab(child.name, fallback="skill")
-            _append_skill(skills, slug, meta.get("name") or child.name, meta, body)
+            relative = child.relative_to(skills_root).as_posix()
+            _append_skill(
+                skills,
+                slug,
+                meta.get("name") or child.name,
+                meta,
+                body,
+                relative if relative != child.name else "",
+            )
             continue
         if depth < MAX_SKILL_DEPTH:
-            _collect_skills(child, skills, depth=depth + 1)
+            _collect_skills(child, skills, depth=depth + 1, skills_root=skills_root)
 
 
 def _append_skill(
-    skills: list[Skill], slug: str, name: str, meta: dict[str, str], body: str
+    skills: list[Skill],
+    slug: str,
+    name: str,
+    meta: dict[str, str],
+    body: str,
+    source_path: str,
 ) -> None:
     """Add a skill, qualifying the slug if a same-named skill already exists.
 
@@ -208,6 +223,7 @@ def _append_skill(
             name=name,
             description=meta.get("description", ""),
             content=body.strip(),
+            source_path=source_path,
         )
     )
 

@@ -66,3 +66,45 @@ def test_depth_is_capped(tmp_path: Path) -> None:
 def test_category_without_skills_is_ignored(tmp_path: Path) -> None:
     (tmp_path / "empty-category").mkdir()
     assert _read_skills(tmp_path) == []
+
+
+def test_source_path_is_recorded_for_nested_skills(tmp_path: Path) -> None:
+    _write_skill(tmp_path / "apple" / "imessage", "imessage")
+    assert _read_skills(tmp_path)[0].source_path == "apple/imessage"
+
+
+def test_source_path_is_empty_for_flat_skills(tmp_path: Path) -> None:
+    _write_skill(tmp_path / "arxiv-brief", "arxiv-brief")
+    assert _read_skills(tmp_path)[0].source_path == ""
+
+
+def test_profile_write_keeps_skill_in_its_category(tmp_path: Path) -> None:
+    """Syncing a live profile must not leave a flat copy beside the original."""
+    from botmigrate.hermes.write import write_hermes_profile
+    from botmigrate.ir.models import Identity, PortableBot, Skill
+
+    bot = PortableBot(
+        identity=Identity(name="bot", slug="bot"),
+        skills=[
+            Skill(slug="imessage", name="imessage", source_path="apple/imessage"),
+            Skill(slug="arxiv-brief", name="arxiv-brief"),
+        ],
+    )
+    out = tmp_path / "profile"
+    write_hermes_profile(bot, out, include_memories=False)
+    written = sorted(p.relative_to(out).as_posix() for p in out.glob("skills/**/SKILL.md"))
+    assert written == ["skills/apple/imessage/SKILL.md", "skills/arxiv-brief/SKILL.md"]
+
+
+def test_distribution_write_flattens_skills(tmp_path: Path) -> None:
+    from botmigrate.hermes.write import write_hermes_distribution
+    from botmigrate.ir.models import Identity, PortableBot, Skill
+
+    bot = PortableBot(
+        identity=Identity(name="bot", slug="bot"),
+        skills=[Skill(slug="imessage", name="imessage", source_path="apple/imessage")],
+    )
+    out = tmp_path / "dist"
+    write_hermes_distribution(bot, out, include_memories=False)
+    written = [p.relative_to(out).as_posix() for p in out.glob("skills/**/SKILL.md")]
+    assert written == ["skills/imessage/SKILL.md"]

@@ -32,6 +32,12 @@ class Skill(BaseModel):
     name: str
     description: str = ""
     content: str = ""
+    source_path: str = ""
+    """Path of the skill directory relative to `skills/`, when it was nested.
+
+    Live Hermes profiles group skills under a category. Distributions are flat,
+    so this is empty for them and the slug alone locates the directory.
+    """
 
 
 class Schedule(BaseModel):
