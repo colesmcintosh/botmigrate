@@ -70,7 +70,13 @@ errors.log
 """
 
 
-def write_hermes_distribution(bot: PortableBot, out: Path, *, include_memories: bool) -> None:
+def write_hermes_distribution(
+    bot: PortableBot,
+    out: Path,
+    *,
+    include_memories: bool,
+    preserve_skill_paths: bool = False,
+) -> None:
     out.mkdir(parents=True, exist_ok=True)
     slug = kebab(bot.identity.slug or bot.identity.name, fallback="bot")
     write_yaml(out / "distribution.yaml", _distribution_payload(bot, slug))
@@ -81,7 +87,11 @@ def write_hermes_distribution(bot: PortableBot, out: Path, *, include_memories: 
     _write_mcp(out, bot)
     _write_env_example(out, bot)
     for skill in sorted(bot.skills, key=lambda s: s.slug):
-        write_skill_dir(out / "skills", skill.slug, skill.slug, skill.description, skill.content)
+        # Distributions are flat. Writing into a live profile keeps a skill in the
+        # category directory it came from, so syncing does not leave a flat copy
+        # beside the nested original.
+        target = skill.source_path if preserve_skill_paths and skill.source_path else skill.slug
+        write_skill_dir(out / "skills", target, skill.slug, skill.description, skill.content)
     for routine in sorted(bot.routines, key=lambda r: r.slug):
         if routine.schedule and routine.schedule.kind == "event":
             continue
@@ -98,7 +108,9 @@ def write_hermes_profile(
     include_memories: bool,
     merge_jobs: bool = True,
 ) -> None:
-    write_hermes_distribution(bot, out, include_memories=include_memories)
+    write_hermes_distribution(
+        bot, out, include_memories=include_memories, preserve_skill_paths=True
+    )
     write_sidecar(out, bot, "hermes-profile")
     cron_routines = [
         r for r in bot.routines if not (r.schedule and r.schedule.kind == "event")

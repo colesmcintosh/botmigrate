@@ -149,31 +149,83 @@ def _soul_title_and_role(soul: str) -> tuple[str, str]:
     return title, role
 
 
+MAX_SKILL_DEPTH = 4
+"""How far to descend into `skills/` looking for skill directories.
+
+Distributions keep skills flat (`skills/<slug>/SKILL.md`), but live Hermes
+profiles group them under a category (`skills/<category>/<slug>/SKILL.md`).
+The cap also bounds recursion if a symlink points back up the tree.
+"""
+
+
 def _read_skills(root: Path) -> list[Skill]:
     if not root.is_dir():
         return []
     skills: list[Skill] = []
+    _collect_skills(root, skills, depth=0, skills_root=root)
+    return skills
+
+
+def _collect_skills(
+    root: Path, skills: list[Skill], *, depth: int, skills_root: Path
+) -> None:
     for child in sorted(root.iterdir()):
+        if child.name.startswith("."):
+            continue
         if not child.is_dir():
             if child.name == "SKILL.md":
                 meta, body = parse_skill_md(read_text(child))
                 slug = kebab(meta.get("name") or child.parent.name, fallback="skill")
-                skills.append(Skill(slug=slug, name=meta.get("name") or slug, description=meta.get("description", ""), content=body.strip()))
+                _append_skill(skills, slug, meta.get("name") or slug, meta, body, "")
             continue
         parsed = read_skill_dir(child)
-        if not parsed:
-            continue
-        meta, body = parsed
-        slug = kebab(child.name, fallback="skill")
-        skills.append(
-            Skill(
-                slug=slug,
-                name=meta.get("name") or child.name,
-                description=meta.get("description", ""),
-                content=body.strip(),
+        if parsed:
+            meta, body = parsed
+            slug = kebab(child.name, fallback="skill")
+            relative = child.relative_to(skills_root).as_posix()
+            _append_skill(
+                skills,
+                slug,
+                meta.get("name") or child.name,
+                meta,
+                body,
+                relative if relative != child.name else "",
             )
+            continue
+        if depth < MAX_SKILL_DEPTH:
+            _collect_skills(child, skills, depth=depth + 1, skills_root=skills_root)
+
+
+def _append_skill(
+    skills: list[Skill],
+    slug: str,
+    name: str,
+    meta: dict[str, str],
+    body: str,
+    source_path: str,
+) -> None:
+    """Add a skill, qualifying the slug if a same-named skill already exists.
+
+    Categories are flattened away, so two categories can hold skills with the
+    same directory name. Later writes key off the slug, so a collision would
+    silently drop one of them.
+    """
+    taken = {s.slug for s in skills}
+    if slug in taken:
+        base = slug
+        counter = 2
+        while slug in taken:
+            slug = f"{base}-{counter}"
+            counter += 1
+    skills.append(
+        Skill(
+            slug=slug,
+            name=name,
+            description=meta.get("description", ""),
+            content=body.strip(),
+            source_path=source_path,
         )
-    return skills
+    )
 
 
 def _read_cron(root: Path) -> list[Routine]:
