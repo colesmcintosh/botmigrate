@@ -1,0 +1,54 @@
+[project]
+name = "botmigrate"
+version = "0.1.0"
+description = "Convert and sync AI agent bots between Grok Bot and Hermes Agent."
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+authors = [{ name = "botmigrate contributors" }]
+keywords = ["grok", "hermes", "agent", "bot", "migrate", "cli"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "typer>=0.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/colesmcintosh/botmigrate"
+Repository = "https://github.com/colesmcintosh/botmigrate"
+Documentation = "https://github.com/colesmcintosh/botmigrate#readme"
+Issues = "https://github.com/colesmcintosh/botmigrate/issues"
+
+[project.scripts]
+botmigrate = "botmigrate.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/botmigrate"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

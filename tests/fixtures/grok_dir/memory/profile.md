@@ -1,0 +1,2 @@
+- (2026-02-01) Always page the human for Sev-1.
+- Prefer written runbooks over improvising.

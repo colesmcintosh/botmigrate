@@ -1,0 +1,47 @@
+{
+  "profile": {
+    "name": "Research Bot",
+    "description": "Autonomous research assistant that watches arXiv and writes briefs.",
+    "title": "Research specialist",
+    "avatarShape": "blob",
+    "avatarColor": "cyan"
+  },
+  "memory": [
+    {
+      "kind": "profile",
+      "createdAt": "2026-03-01",
+      "content": "Prefer primary sources over summaries."
+    },
+    {
+      "kind": "log",
+      "createdAt": "2026-04-12",
+      "content": "Finished a survey of retrieval papers."
+    }
+  ],
+  "skills": [
+    {
+      "name": "arxiv-brief",
+      "description": "Summarize an arXiv paper into a one-page brief.",
+      "content": "Read the paper. Extract problem, method, results, and caveats. Write a one-page brief."
+    }
+  ],
+  "routines": [
+    {
+      "slug": "weekly-digest",
+      "name": "Weekly digest",
+      "description": "Runs on cron schedule 0 9 * * 1.",
+      "content": "Summarize new arXiv papers on retrieval and agents from the last week."
+    }
+  ],
+  "plugins": [
+    {
+      "pluginId": "github",
+      "name": "GitHub",
+      "description": "Read repositories and issues."
+    }
+  ],
+  "gettingStarted": {
+    "skill": "arxiv-brief"
+  },
+  "visibility": "public"
+}

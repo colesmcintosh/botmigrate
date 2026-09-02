@@ -1,0 +1,13 @@
+{
+  "name": "Weekly digest",
+  "prompt": "Write the weekly ops digest from open incidents.",
+  "schedule": "0 9 * * 1",
+  "triggerPresentation": {
+    "version": 1,
+    "trigger": {
+      "type": "cron",
+      "schedule": "0 9 * * 1"
+    }
+  },
+  "enabled": true
+}

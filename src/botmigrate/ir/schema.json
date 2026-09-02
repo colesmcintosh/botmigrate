@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://botmigrate.dev/schema/portable-bot.v1.json",
+  "title": "botmigrate portable bot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["identity"],
+  "properties": {
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "slug"],
+      "properties": {
+        "name": { "type": "string", "description": "Display name (Grok profile.name)" },
+        "slug": { "type": "string", "description": "kebab-case id (Hermes distribution name / folder)" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "soul": { "type": "string", "description": "Persona markdown (SOUL.md)" }
+      }
+    },
+    "memories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "content"],
+        "properties": {
+          "kind": { "enum": ["profile", "log"] },
+          "content": { "type": "string" },
+          "created_at": { "type": ["string", "null"], "description": "YYYY-MM-DD when known" }
+        }
+      }
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["slug", "name"],
+        "properties": {
+          "slug": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "content": { "type": "string", "description": "SKILL.md body (no frontmatter)" }
+        }
+      }
+    },
+    "routines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["slug", "name"],
+        "properties": {
+          "slug": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "prompt": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "schedule": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["kind"],
+            "properties": {
+              "kind": { "enum": ["cron", "relative", "interval", "iso", "event"] },
+              "cron": { "type": ["string", "null"], "description": "5-field cron when possible" },
+              "display": { "type": "string" },
+              "original": { "type": "object", "description": "Platform trigger metadata for round-trip" }
+            }
+          }
+        }
+      }
+    },
+    "connectors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "id", "name"],
+        "properties": {
+          "kind": { "enum": ["plugin", "mcp"] },
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "config_without_secrets": { "type": "object" },
+          "env_requires": { "type": "array", "items": { "type": "string" } },
+          "mapped": { "type": "boolean" }
+        }
+      }
+    },
+    "extras": {
+      "type": "object",
+      "description": "Opaque sidecar payload (avatar, model pin, event triggers, …)"
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

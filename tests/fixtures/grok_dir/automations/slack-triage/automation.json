@@ -1,0 +1,12 @@
+{
+  "name": "Slack triage",
+  "prompt": "Triage new #incidents messages and draft a first response.",
+  "triggerPresentation": {
+    "version": 1,
+    "trigger": {
+      "type": "slack",
+      "channel": "#incidents"
+    }
+  },
+  "enabled": true
+}

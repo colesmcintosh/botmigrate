@@ -1,0 +1,13 @@
+.venv/
+agent-tools/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+.uv/
+*.tar.gz
+.coverage
+htmlcov/

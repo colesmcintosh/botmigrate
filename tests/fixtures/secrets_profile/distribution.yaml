@@ -1,0 +1,7 @@
+name: leaky-bot
+version: 1.0.0
+description: Fixture used to prove secrets are never copied.
+hermes_requires: ">=0.12.0"
+author: botmigrate
+license: MIT
+env_requires: []

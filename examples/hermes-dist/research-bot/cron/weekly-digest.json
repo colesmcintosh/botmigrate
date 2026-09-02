@@ -1,0 +1,10 @@
+{
+  "name": "Weekly digest",
+  "prompt": "Summarize new arXiv papers on retrieval and agents from the last week.",
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 9 * * 1",
+    "display": "0 9 * * 1"
+  },
+  "enabled": false
+}

@@ -1,0 +1,4 @@
+model:
+  default: anthropic/claude-sonnet-4
+provider:
+  api_key: sk-in-config-must-strip

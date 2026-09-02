@@ -1,0 +1,7 @@
+{
+  "name": "Ops Bot",
+  "description": "On-call assistant for incidents and weekly ops review.",
+  "title": "Ops specialist",
+  "avatarShape": "shield",
+  "avatarColor": "red"
+}

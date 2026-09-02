@@ -1,0 +1,10 @@
+name: research-bot
+version: 1.0.0
+description: Autonomous research assistant that watches arXiv and writes briefs.
+hermes_requires: ">=0.12.0"
+author: botmigrate
+license: MIT
+env_requires:
+  - name: GITHUB_TOKEN
+    description: GitHub personal access token
+    required: true

@@ -1,0 +1,14 @@
+# Credentials & secrets — NEVER commit
+auth.json
+.env
+.env.EXAMPLE
+
+# Runtime databases & state
+state.db
+state.db-shm
+state.db-wal
+
+# User data — NEVER commit
+memories/
+sessions/
+logs/
