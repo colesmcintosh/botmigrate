@@ -22,13 +22,15 @@ uv sync --extra dev
 
 ```bash
 botmigrate inspect ./research-bot.json
-botmigrate convert --from grok --to hermes --src ./research-bot.json --out ./research-bot
-botmigrate convert --from hermes --to grok --src ./research-bot --out ./research-bot.json
-botmigrate sync --from grok --to hermes --src ./research-bot.json --dst ~/.hermes/profiles/research-bot
-botmigrate sync --from grok --to hermes --src ./research-bot.json --dst ~/.hermes/profiles/research-bot --apply
+botmigrate convert ./research-bot.json ./research-bot          # Grok → Hermes
+botmigrate convert ./research-bot ./research-bot.json          # Hermes → Grok
+botmigrate sync ./research-bot.json ~/.hermes/profiles/research-bot          # show the plan
+botmigrate sync ./research-bot.json ~/.hermes/profiles/research-bot --apply  # write it
 ```
 
-Sync is a **dry-run by default**. Pass `--apply` to write.
+The source format is detected from the files. The target defaults to the other
+platform (pass `--to grok|hermes` to be explicit, or to go Hermes → Hermes).
+`sync` is a **dry-run by default**; pass `--apply` to write.
 
 Python 3.11+ is required. After a local clone, `uv run botmigrate --help` should work.
 
@@ -37,11 +39,7 @@ Python 3.11+ is required. After a local clone, `uv run botmigrate --help` should
 The repo ships a tiny Grok template at `examples/grok-share/research-bot.json`.
 
 ```bash
-botmigrate convert \
-  --from grok \
-  --to hermes \
-  --src examples/grok-share/research-bot.json \
-  --out ./out/research-bot
+botmigrate convert examples/grok-share/research-bot.json ./out/research-bot
 ```
 
 That writes an installable Hermes profile distribution:
@@ -69,36 +67,33 @@ hermes profile install ./out/research-bot --alias
 
 Imported cron jobs stay **disabled**. Hermes itself does not auto-schedule imported crons; enable them after you read the prompts.
 
-Memories from the Grok JSON are **not** written into a shareable Hermes distribution unless you pass `--include-memories`. A distribution is meant to be committed or handed to someone else.
+Memories from the Grok JSON are **not** written into a shareable Hermes distribution unless you pass `--memories`. A distribution is meant to be committed or handed to someone else.
 
 ## Worked example: Hermes distribution → Grok share JSON
 
 ```bash
-botmigrate convert \
-  --from hermes \
-  --to grok \
-  --src examples/hermes-dist/research-bot \
-  --out ./out/research-bot.json
+botmigrate convert examples/hermes-dist/research-bot ./out/research-bot.json
 ```
 
-The JSON is the Grok share / template shape (`profile`, `memory`, `skills`, `routines`, `plugins`). Point `--out` at a directory instead of a `.json` file to write an on-disk Grok agent folder (`profile.json`, `automations/<slug>/automation.json`, `skills/<slug>/SKILL.md`).
+The JSON is the Grok share / template shape (`profile`, `memory`, `skills`, `routines`, `plugins`). Give a directory instead of a `.json` file to write an on-disk Grok agent folder (`profile.json`, `automations/<slug>/automation.json`, `skills/<slug>/SKILL.md`).
 
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `inspect <path>` | Detect format; print name, skills, routines/cron, memory counts, plugins/MCP. `--json` for machines. |
-| `convert --from grok\|hermes --to grok\|hermes --src <path> --out <path>` | One-shot convert. |
-| `sync --from … --to … --src <path> --dst <path>` | Apply portable fields onto an existing dest. Dry-run default; `--apply` writes. |
+| `convert <src> <out>` | One-shot convert. Writes `MIGRATION.md` and `.botmigrate.json` beside the output. |
+| `sync <src> <dst>` | Merge portable fields onto an existing dest. Dry-run default; `--apply` writes. |
 
-Useful flags:
+Flags shared by `convert` and `sync`:
 
+- `--to grok\|hermes` — target platform. Defaults to the other platform. On `sync`, an existing destination keeps its own platform and `--to` must agree.
+- `--from grok\|hermes` — assert the source platform instead of trusting detection.
+- `--layout <name>` — output shape within the target: `grok: share|directory`, `hermes: distribution|profile`. Default: `.json` output → share, otherwise directory / distribution. A live `profile` layout also merges `cron/jobs.json`.
+- `--memories` / `--no-memories` — override the memory default (see below).
 - `--skills-dir` — Grok shared workflows live outside the agent folder; pass their parent so SKILL.md trees are picked up. Writes always emit `skills/<slug>/SKILL.md` inside the output so the bundle is self-contained.
-- `--include-memories` / `--exclude-memories` — override the memory default (see below).
-- `--hermes-layout distribution\|profile` — installable distribution (default) vs a live profile tree (may also emit `cron/jobs.json`).
-- `--json` — `inspect` only.
 
-Exit non-zero on unknown format, missing required files, or an attempted secret copy (for example pointing `--src` at `.env`).
+Exit non-zero on unknown format, missing required files, or an attempted secret copy (for example pointing it at `.env`).
 
 ### Memory defaults
 
@@ -132,6 +127,29 @@ Hermes memories that may be converted (only with the include path): `USER.md` (p
 Skills use the [agentskills.io](https://agentskills.io/specification) `SKILL.md` shape (YAML frontmatter + markdown body). Slug comes from the folder name or a kebab-case of `name`.
 
 An internal JSON Schema for the portable model lives at `src/botmigrate/ir/schema.json`. Adapters read and write that IR; they do not call each other.
+
+## Python API
+
+```python
+from botmigrate import convert, sync, load_bot
+
+convert("research-bot.json", "./research-bot")                 # Grok → Hermes
+plan = sync("./research-bot", "~/.hermes/profiles/research-bot")  # dry-run
+print("\n".join(plan.changes))
+sync("./research-bot", "~/.hermes/profiles/research-bot", apply=True)
+
+bot, kind = load_bot("./research-bot")   # PortableBot + detected FormatKind
+```
+
+`convert` and `sync` take the same keyword options as the CLI (`to`, `from_`, `layout`, `memories`, `skills_dir`).
+
+## Adding a platform
+
+Every platform is one folder under `src/botmigrate/platforms/` exposing an `ADAPTER`
+(see `platforms/base.py`): a `detect(path)` function, a `read(path)` into the IR,
+one writer per output layout, and a default layout. Register it in
+`platforms/__init__.py`. Detection, `inspect`, `convert`, `sync`, the `--to` /
+`--layout` choices and their help text all pick it up from the registry.
 
 `.botmigrate.json` is written next to every output so a later sync or round-trip can restore extras (Grok avatar, event triggers, Hermes `config.yaml`, non-cron Hermes schedules).
 
@@ -169,7 +187,7 @@ Stubs use `command` / `args` placeholders. Tokens stay on your machine.
 - Never copies `.env`, `auth.json`, or session/state databases.
 - Strips secret-looking keys (`api_key`, `token`, `password`, …) from `config.yaml` / `mcp.json`.
 - `env_requires` and `.env.EXAMPLE` list **names only**.
-- Pointing `--src` at a secret file exits non-zero.
+- Pointing the source at a secret file exits non-zero.
 - No telemetry. Convert and sync do not open a network connection.
 
 If you are publishing a Hermes distribution, keep the generated `.gitignore` and run `git status` before the first commit.

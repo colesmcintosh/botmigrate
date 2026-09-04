@@ -1,27 +1,24 @@
-from typer.testing import CliRunner
-
-from botmigrate.cli import app
-
-runner = CliRunner()
+from conftest import cli
 
 
 def test_help() -> None:
-    result = runner.invoke(app, ["--help"])
+    result = cli("--help")
     assert result.exit_code == 0
-    assert "inspect" in result.stdout
-    assert "convert" in result.stdout
-    assert "sync" in result.stdout
+    for command in ("inspect", "convert", "sync"):
+        assert command in result.stdout
 
 
-def test_convert_help_mentions_memories() -> None:
-    result = runner.invoke(app, ["convert", "--help"])
+def test_convert_help_mentions_memories_and_layouts() -> None:
+    result = cli("convert", "--help")
     assert result.exit_code == 0
-    assert "--include-memories" in result.stdout
-    assert "distribution" in result.stdout.lower()
+    assert "--memories" in result.stdout
+    assert "--no-memories" in result.stdout
+    assert "distribution|profile" in result.stdout
+    assert "share|directory" in result.stdout
 
 
 def test_sync_help_mentions_dry_run() -> None:
-    result = runner.invoke(app, ["sync", "--help"])
+    result = cli("sync", "--help")
     assert result.exit_code == 0
     assert "--apply" in result.stdout
-    assert "--dry-run" in result.stdout
+    assert "dry-run" in result.stdout.lower()

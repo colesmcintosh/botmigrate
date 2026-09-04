@@ -71,7 +71,9 @@ def schedule_from_hermes(raw: Any) -> Schedule | None:
     display = str(raw.get("display") or expr)
     if kind == "cron" or (not kind and is_cron_5(expr)):
         cron = expr if is_cron_5(expr) else None
-        return Schedule(kind="cron" if cron else "interval", cron=cron, display=display, original=dict(raw))
+        return Schedule(
+            kind="cron" if cron else "interval", cron=cron, display=display, original=dict(raw)
+        )
     if kind == "relative" or (not kind and RELATIVE.fullmatch(expr)):
         return Schedule(kind="relative", display=display or expr, original=dict(raw))
     if kind == "interval" or (not kind and INTERVAL.fullmatch(expr)):
@@ -104,10 +106,14 @@ def schedule_from_grok_trigger(automation: dict[str, Any]) -> Schedule | None:
     trigger_type = str(trigger.get("type") or "").strip()
     raw_schedule = automation.get("schedule") or trigger.get("schedule") or ""
 
-    if trigger_type.lower() == "cron" or (not trigger_type and raw_schedule and is_cron_5(str(raw_schedule))):
+    if trigger_type.lower() == "cron" or (
+        not trigger_type and raw_schedule and is_cron_5(str(raw_schedule))
+    ):
         expr = str(raw_schedule or trigger.get("schedule") or "").strip()
         if is_cron_5(expr):
-            return schedule_from_cron_string(expr, original={"grok_trigger": trigger, "schedule": expr})
+            return schedule_from_cron_string(
+                expr, original={"grok_trigger": trigger, "schedule": expr}
+            )
         return Schedule(kind="interval", display=expr, original={"grok_trigger": trigger})
 
     if trigger_type.lower() in GROK_EVENT_TYPES or trigger_type:
@@ -120,7 +126,9 @@ def schedule_from_grok_trigger(automation: dict[str, Any]) -> Schedule | None:
     if raw_schedule and is_cron_5(str(raw_schedule)):
         return schedule_from_cron_string(str(raw_schedule))
     if raw_schedule:
-        return Schedule(kind="interval", display=str(raw_schedule), original={"schedule": raw_schedule})
+        return Schedule(
+            kind="interval", display=str(raw_schedule), original={"schedule": raw_schedule}
+        )
     return None
 
 

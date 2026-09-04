@@ -19,9 +19,7 @@ class UnknownFormatError(BotmigrateError):
             "grok share JSON, grok agent directory, Hermes distribution, "
             "Hermes live profile, or Hermes export tarball"
         )
-        super().__init__(
-            f"unknown format at {path}\n  expected: {expected}\n  found: {found}"
-        )
+        super().__init__(f"unknown format at {path}\n  expected: {expected}\n  found: {found}")
         self.path = path
         self.expected = expected
         self.found = found

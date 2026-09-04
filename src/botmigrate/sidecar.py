@@ -1,19 +1,18 @@
-"""`.botmigrate.json` sidecar for extras / round-trip metadata."""
+"""`.botmigrate.json` sidecar: extras written beside every output so a later
+sync or round-trip can restore what the destination format cannot hold."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from botmigrate.io import read_json, write_json
+from botmigrate.io import output_dir, read_json, write_json
 from botmigrate.ir.models import PortableBot, Sidecar
 
 SIDECAR_NAME = ".botmigrate.json"
 
 
 def sidecar_path(target: Path) -> Path:
-    if target.is_file() or target.suffix == ".json":
-        return target.parent / SIDECAR_NAME
-    return target / SIDECAR_NAME
+    return output_dir(target) / SIDECAR_NAME
 
 
 def load_sidecar(target: Path) -> Sidecar | None:
@@ -21,9 +20,7 @@ def load_sidecar(target: Path) -> Sidecar | None:
     if not path.is_file():
         return None
     raw = read_json(path)
-    if not isinstance(raw, dict):
-        return None
-    return Sidecar.model_validate(raw)
+    return Sidecar.model_validate(raw) if isinstance(raw, dict) else None
 
 
 def write_sidecar(target: Path, bot: PortableBot, source_format: str) -> None:

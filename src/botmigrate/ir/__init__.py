@@ -1,3 +1,4 @@
+from botmigrate.ir.extras import merge_extras
 from botmigrate.ir.models import (
     Connector,
     Identity,
@@ -18,4 +19,5 @@ __all__ = [
     "Schedule",
     "Sidecar",
     "Skill",
+    "merge_extras",
 ]
