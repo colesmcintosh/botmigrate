@@ -63,13 +63,11 @@ _SECRET_VALUE = re.compile(
 
 def is_secret_filename(name: str) -> bool:
     lowered = name.lower()
-    if lowered in SECRET_FILENAMES:
-        return True
-    if lowered.startswith(".env"):
-        return True
-    if lowered.endswith(".db") or lowered.endswith(".db-shm") or lowered.endswith(".db-wal"):
-        return True
-    return False
+    return (
+        lowered in SECRET_FILENAMES
+        or lowered.startswith(".env")
+        or lowered.endswith((".db", ".db-shm", ".db-wal"))
+    )
 
 
 def is_secret_path(path: Path) -> bool:

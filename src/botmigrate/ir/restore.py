@@ -32,7 +32,9 @@ def restore_from_extras(bot: PortableBot) -> PortableBot:
     seen: set[str] = set()
     for routine in bot.routines:
         if routine.schedule is None and routine.slug in schedules:
-            routine = routine.model_copy(update={"schedule": Schedule.model_validate(schedules[routine.slug])})
+            routine = routine.model_copy(
+                update={"schedule": Schedule.model_validate(schedules[routine.slug])}
+            )
         if routine.schedule is None:
             inferred = _cron_from_text(f"{routine.description}\n{routine.prompt}")
             if inferred:
@@ -45,7 +47,9 @@ def restore_from_extras(bot: PortableBot) -> PortableBot:
             routines.append(extra_r)
             seen.add(extra_r.slug)
     identity = _restore_identity(bot.identity, extras)
-    return bot.model_copy(update={"identity": identity, "routines": routines, "extras": extras}).sorted()
+    return bot.model_copy(
+        update={"identity": identity, "routines": routines, "extras": extras}
+    ).sorted()
 
 
 def _restore_identity(identity: Identity, extras: dict) -> Identity:

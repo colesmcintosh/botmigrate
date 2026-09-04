@@ -15,8 +15,7 @@ def parse_skill_md(text: str) -> tuple[dict[str, str], str]:
     if not stripped.startswith("---"):
         return {}, stripped.strip() + ("\n" if stripped.strip() else "")
     rest = stripped[3:]
-    if rest.startswith("\n"):
-        rest = rest[1:]
+    rest = rest.removeprefix("\n")
     end = rest.find("\n---")
     if end < 0:
         return {}, stripped.strip() + "\n"
@@ -25,11 +24,16 @@ def parse_skill_md(text: str) -> tuple[dict[str, str], str]:
     meta = yaml.safe_load(raw_meta) or {}
     if not isinstance(meta, dict):
         meta = {}
-    clean = {str(k): "" if v is None else str(v) if not isinstance(v, str) else v for k, v in meta.items()}
+    clean = {
+        str(k): "" if v is None else str(v) if not isinstance(v, str) else v
+        for k, v in meta.items()
+    }
     return clean, body
 
 
-def render_skill_md(name: str, description: str, body: str, extra: dict[str, str] | None = None) -> str:
+def render_skill_md(
+    name: str, description: str, body: str, extra: dict[str, str] | None = None
+) -> str:
     front_name = name if is_skill_name(name) else kebab(name, fallback="skill")
     lines = ["---", f"name: {front_name}", f"description: {description}"]
     for key, value in (extra or {}).items():

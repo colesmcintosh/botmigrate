@@ -1,4 +1,4 @@
-"""Deterministic JSON/YAML and text writes."""
+"""Deterministic JSON/YAML and text reads and writes."""
 
 from __future__ import annotations
 
@@ -35,10 +35,21 @@ def read_yaml(path: Path) -> Any:
 def write_yaml(path: Path, data: Any) -> None:
     write_text(
         path,
-        yaml.safe_dump(
-            data,
-            sort_keys=False,
-            allow_unicode=True,
-            default_flow_style=False,
-        ),
+        yaml.safe_dump(data, sort_keys=False, allow_unicode=True, default_flow_style=False),
     )
+
+
+def output_dir(target: Path) -> Path:
+    """Directory that holds side files (MIGRATION.md, .botmigrate.json) for an output.
+
+    A `.json` target is a single share file, so its parent directory is used.
+    """
+    if target.suffix.lower() == ".json" or target.is_file():
+        return target.parent
+    return target
+
+
+def list_names(path: Path, limit: int = 16) -> str:
+    """Short, human-readable listing of a directory for error messages."""
+    names = sorted(p.name for p in path.iterdir())[:limit]
+    return ", ".join(names) if names else "an empty directory"

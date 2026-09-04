@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Any, Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -40,6 +40,9 @@ AvatarColor = Literal[
     "magenta",
     "gray",
 ]
+
+AVATAR_SHAPES = frozenset(get_args(AvatarShape))
+AVATAR_COLORS = frozenset(get_args(AvatarColor))
 
 
 class GrokProfile(BaseModel):

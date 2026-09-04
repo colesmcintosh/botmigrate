@@ -6,6 +6,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+MemoryKind = Literal["profile", "log"]
+
 
 class Identity(BaseModel):
     model_config = ConfigDict(extra="forbid")
@@ -20,7 +22,7 @@ class Identity(BaseModel):
 class Memory(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    kind: Literal["profile", "log"]
+    kind: MemoryKind
     content: str
     created_at: str | None = None
 
@@ -92,6 +94,9 @@ class PortableBot(BaseModel):
                 "connectors": sorted(self.connectors, key=lambda c: (c.kind, c.id)),
             }
         )
+
+    def without_memories(self) -> PortableBot:
+        return self.model_copy(update={"memories": []})
 
     def profile_memories(self) -> list[Memory]:
         return [m for m in self.memories if m.kind == "profile"]

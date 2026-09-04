@@ -41,7 +41,11 @@
           "slug": { "type": "string" },
           "name": { "type": "string" },
           "description": { "type": "string" },
-          "content": { "type": "string", "description": "SKILL.md body (no frontmatter)" }
+          "content": { "type": "string", "description": "SKILL.md body (no frontmatter)" },
+          "source_path": {
+            "type": "string",
+            "description": "Directory relative to skills/ when the skill was nested under a category (live Hermes profiles); empty otherwise"
+          }
         }
       }
     },

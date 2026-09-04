@@ -1,4 +1,8 @@
-"""Detected on-disk formats."""
+"""On-disk formats botmigrate can read or write.
+
+Which platform owns a kind, and how it is read or written, lives in
+`botmigrate.platforms`. This enum is just the shared vocabulary.
+"""
 
 from __future__ import annotations
 
@@ -11,19 +15,3 @@ class FormatKind(str, Enum):
     hermes_distribution = "hermes-distribution"
     hermes_profile = "hermes-profile"
     hermes_tarball = "hermes-tarball"
-
-
-def is_grok(kind: FormatKind) -> bool:
-    return kind in {FormatKind.grok_share, FormatKind.grok_directory}
-
-
-def is_hermes(kind: FormatKind) -> bool:
-    return kind in {
-        FormatKind.hermes_distribution,
-        FormatKind.hermes_profile,
-        FormatKind.hermes_tarball,
-    }
-
-
-def is_shareable(kind: FormatKind) -> bool:
-    return kind in {FormatKind.grok_share, FormatKind.hermes_distribution}
